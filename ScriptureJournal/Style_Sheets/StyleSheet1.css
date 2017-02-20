@@ -1,0 +1,62 @@
+﻿body {
+    margin-left: 100px;
+    margin-right: 100px;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    border: solid;
+    
+    background-color: aquamarine;
+}
+
+.mainpage {
+    background-color: white;
+    padding:50px;
+}
+.grid {
+    margin: 4px;
+    margin-bottom: 10px;
+    border-collapse: collapse;
+    width: 700px;
+}
+.grid th, .grid td {
+    border: 1px solid #C0C0C0;
+    padding: 5px;
+}
+.head {
+    background-color: #E8E8E8;
+    font-weight: bold;
+    color: #FFF;
+}
+.alt {
+    background-color: #E8E8E8;
+    color: #000;
+}
+
+.form {
+    width: 700px;
+}
+
+.formlabel {
+    padding-left: 10px;
+    padding-right: 20px;
+    padding-top: 30px;
+}
+
+.submitbutton {
+    margin-left: 10px;
+}
+.labelsearch {
+    padding-left: 10px;
+    margin-bottom:10px;
+    margin-top:10px;
+}
+
+.validation-summary-errors {
+    color: red;
+    font-weight: bold;
+    border: dotted;
+    border-color: red;
+    background-color: yellow;
+    width: 700px;
+    margin-bottom: 10px;
+}

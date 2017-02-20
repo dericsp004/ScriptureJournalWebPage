@@ -1,0 +1,85 @@
+﻿@{
+    var scripture = "";
+    var book = "";
+    var chapter = "";
+    var verse = "";
+    var notes = "";
+    var entryId = "";
+
+    if (!IsPost)
+    {
+        if (!Request.QueryString["ID"].IsEmpty() && Request.QueryString["ID"].IsInt())
+        {
+            entryId = Request.QueryString["ID"];
+            var db = Database.Open("ScriptureJournalDB");
+            var dbCommand = "SELECT * FROM favorite_scripture WHERE ID = @0";
+            var row = db.QuerySingle(dbCommand, entryId);
+
+            if (row != null)
+            {
+                scripture = row.scripture_name;
+                book = row.book_name;
+                chapter = row.chapter;
+                verse = row.verse;
+                notes = row.notes;
+            }
+            else
+            {
+                Validation.AddFormError("No entry was found with that ID.");
+            }
+        }
+        else
+        {
+            Validation.AddFormError("No journal entry was selected.");
+        }
+    }
+
+    if (IsPost && !Request["buttonDelete"].IsEmpty())
+    {
+        entryId = Request.Form["entryId"];
+        var db = Database.Open("ScriptureJournalDB");
+        var deleteCommand = "DELETE FROM favorite_scripture WHERE ID = @0";
+        db.Execute(deleteCommand, entryId);
+        Response.Redirect("~/ScriptureJournal");
+    }
+}
+<html>
+    <head>
+        <title>Delete Entry</title>
+        <link rel="stylesheet" type="text/css" href="~/Style_Sheets/StyleSheet1.css" />
+    </head>
+<body>
+    <div class="mainpage">
+    <h1>Delete a Journal Entry</h1>
+    @Html.ValidationSummary()
+    <form method="post">
+        <fieldset>
+            <legend>Journal Entry Information</legend>
+            <p>
+                <span>Scripture:</span>
+                <span>@scripture</span>
+            </p>
+            <p>
+                <span>Book:</span>
+                <span>@book</span>
+            </p>
+            <p>
+                <span>Chapter:</span>
+                <span>@chapter</span>
+            </p>
+            <p>
+                <span>Verse:</span>
+                <span>@verse</span>
+            </p>
+            <p>
+                <span>Notes:</span>
+                <span>@notes</span>
+            </p>
+            <input type="hidden" name="entryid" value="@entryId" />
+            <p><input type="submit" name="buttonDelete" value="Delete Entry" /></p>
+            </fieldset>
+        </form>
+    <div><p><a href="~/ScriptureJournal.cshtml">Return to Journal</a></p></div>
+    </div>
+</body>
+</html>

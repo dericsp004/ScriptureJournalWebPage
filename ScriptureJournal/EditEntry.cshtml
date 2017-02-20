@@ -1,0 +1,121 @@
+﻿@{
+    var scripture = "";
+    var book = "";
+    var chapter = "";
+    var verse = "";
+    var notes = "";
+    var entryId = "";
+
+    if (!IsPost)
+    {
+        if (!Request.QueryString["ID"].IsEmpty() && Request.QueryString["ID"].IsInt())
+        {
+            entryId = Request.QueryString["ID"];
+            var db = Database.Open("ScriptureJournalDB");
+            var dbCommand = "SELECT * FROM favorite_scripture WHERE ID = @0";
+            var row = db.QuerySingle(dbCommand, entryId);
+
+            if (row != null) {
+                scripture = row.scripture_name;
+                book = row.book_name;
+                chapter = row.chapter;
+                verse = row.verse;
+                notes = row.notes;
+            }
+            else {
+                Validation.AddFormError("No entry was found with that ID.");
+            }
+        }
+        else
+        {
+            Validation.AddFormError("No journal entry was selected.");
+        }
+    }
+
+    if (IsPost)
+    {
+        Validation.RequireField("scripture", "You must select a book of scripture");
+        Validation.RequireField("book", "You must select a book");
+        Validation.RequireField("chapter", "You must enter a chapter");
+        Validation.RequireField("verse", "You must enter a verse");
+        Validation.RequireField("entryId", "No entry ID was submitted!");
+
+        scripture = Request.Form["scripture"];
+        book = Request.Form["book"];
+        chapter = Request.Form["chapter"];
+        verse = Request.Form["verse"];
+        notes = Request.Form["notes"];
+        entryId = Request.Form["entryId"];
+
+        if (Validation.IsValid())
+        {
+            var db = Database.Open("ScriptureJournalDB");
+            var updateCommand = "UPDATE favorite_scripture SET scripture_name = @0, book_name = @1, chapter = @2, verse = @3, notes = @4 WHERE Id = @5";
+            db.Execute(updateCommand, scripture, book, chapter, verse, notes, entryId);
+            Response.Redirect("~/ScriptureJournal");
+        }
+    }
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Edit Entry</title>
+    <link rel="stylesheet" type="text/css" href="~/Style_Sheets/StyleSheet1.css" />
+</head>
+<body>
+    <div class="mainpage">
+    <h1>Edit Journal Entry</h1>
+    @Html.ValidationSummary()
+    <div class="form">
+    <form method="post">
+        <fieldset>
+            <legend>Journal Entry Information</legend>
+            <div>
+                <p>
+                    <label>Scripture:</label>
+                    <select name="scripture" id="scriptureList" onload="@scripture">
+                        <option value="Old Testament" @(scripture == "Old Testament" ? "selected" : "")>Old Testament</option>
+                        <option value="New Testament" @(scripture == "New Testament" ? "selected" : "")>New Testament</option>
+                        <option value="Book of Mormon" @(scripture == "Book of Mormon" ? "selected" : "")>Book of Mormon</option>
+                        <option value="Doctrine & Covenants" @(scripture == "Doctrine & Covenants" ? "selected" : "")>Doctrine & Covenants</option>
+                        <option value="Pearl of Great Price" @(scripture == "Pearl of Great Price" ? "selected" : "")>Pearl of Great Price</option>
+                    </select>
+                </p>
+            </div>
+            <div>
+                <p>
+                    <label>Book:</label>
+                    <input type="text" name="book" value="@book"/>
+                </p>
+            </div>
+            <div>
+                <p>
+                    <label>Chapter:</label>
+                    <input type="text" name="chapter" value="@chapter" />
+                </p>
+            </div>
+            <div>
+                <p>
+                    <label>Verse: </label>
+                    <input type="text" name="verse" value="@verse" />
+                </p>
+            </div>
+            <div>
+                <p>
+                    <label>Notes/Impressions: </label> <br />
+                    <textarea name="notes">@notes</textarea>
+                </p>
+            </div>
+            <div>
+                <input type="hidden" name="entryid" value="@entryId"/>
+            </div>
+
+            <p><input type="submit" name="buttonSubmit" value="Submit Changes" /></p>
+        </fieldset>
+    </form>
+    </div>
+    <div><p><a href="~/ScriptureJournal.cshtml">Return to Journal</a></p></div>
+    </div>
+</body>
+</html>

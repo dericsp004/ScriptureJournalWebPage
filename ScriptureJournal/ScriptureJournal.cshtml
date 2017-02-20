@@ -1,0 +1,130 @@
+﻿@{ 
+    var db = Database.Open("ScriptureJournalDB");
+    var selectCommand = "SELECT id, date_added AS Added, scripture_name AS Scripture, book_name AS Book, chapter AS Chapter, verse AS Verse, notes AS notes  FROM favorite_scripture";
+    //
+    //Search on GET
+    var searchTermBook = "";
+    var searchTermKeyWord = "";
+
+    if (!Request.QueryString["searchBook"].IsEmpty() || !Request.QueryString["searchKeyWord"].IsEmpty())
+    {
+        searchTermBook = "%" + Request.QueryString["searchBook"] + "%";
+        searchTermKeyWord = "%" + Request.QueryString["searchKeyWord"] + "%";
+        selectCommand = "SELECT id, date_added AS Added, scripture_name AS Scripture, book_name AS Book, chapter AS Chapter, verse AS Verse, notes AS Notes  FROM favorite_scripture WHERE book_name LIKE @0 AND notes LIKE @1";
+    }
+
+    var selectedData = db.Query(selectCommand, searchTermBook, searchTermKeyWord);
+    var grid = new WebGrid(source: selectedData, defaultSort: "Book", rowsPerPage: 5);
+
+    //Enter new data on POST
+    Validation.RequireField("scripture", "You must select a valid book of scripture");
+    Validation.RequireField("book", "You must select a valid book");
+    Validation.RequireField("chapter", "You must enter a chapter number");
+    Validation.RequireField("verse", "You must enter a verse number");
+
+    var scripture = "";
+    var book = "";
+    var chapter = "";
+    var verse = "";
+    var notes = "";
+    var date_added = DateTime.Now;
+
+    if(IsPost && Validation.IsValid()) {
+        scripture = Request.Form["scripture"];
+        book = Request.Form["book"];
+        chapter = Request.Form["chapter"];
+        verse = Request.Form["verse"];
+        notes = Request.Form["notes"];
+
+        var comInsert = "INSERT INTO favorite_scripture( scripture_name, book_name, chapter, verse, notes, date_added) VALUES(@0, @1, @2, @3, @4, @5)";
+        db.Execute(comInsert, scripture, book, chapter, verse, notes, date_added);
+        Response.Redirect("~/ScriptureJournal");
+    }
+}
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Scripture Journal (Deric Plummer)</title>
+        <link rel="stylesheet" type="text/css" href="~/Style_Sheets/StyleSheet1.css" />
+
+    </head>
+    <body>
+        <div class="mainpage">
+        <header>
+            <h1>Scripture Journal</h1>
+        </header>
+        <main>
+            <form method="get">
+                <div>
+                    <label class="labelsearch" for="searchBook">Search by book</label>
+                    <input type="text" name="searchBook" value="@Request.QueryString["searchBook"]"/>
+                    <label class="labelsearch" for="searchKeyWord">Search by keyword</label>
+                    <input type="text" name="searchKeyWord" value="@Request.QueryString["searchKeyWord"]" />
+                    <input class="submitbutton" type="submit" value="Search"/> 
+                </div>
+            </form>
+            <div name="grid">
+                @grid.GetHtml(
+                    tableStyle: "grid",
+                    headerStyle: "head",
+                    alternatingRowStyle: "alt",
+                    columns: grid.Columns
+                        ( grid.Column(format: @<a href="~/EditEntry?id=@item.ID">Edit</a>)
+                        , grid.Column(format: @<a href="~/DeleteEntry?id=@item.ID">Delete</a>)
+                        , grid.Column("Book")
+                        , grid.Column("Chapter")
+                        , grid.Column("Verse")
+                        , grid.Column("Notes")
+                        , grid.Column("Added", format: @<text>@date_added.ToString("MMM-dd-yyyy")</text>))
+                )
+            </div>
+            <div name="newEntryForm">
+                <div>
+                    <h2>Add New Entry</h2>
+                </div>
+                @Html.ValidationSummary()
+                <div class="form">
+                    <form method="post">
+                        <fieldset>
+                            <legend>Journal Entry Information</legend>
+                            <div>
+                                <p><label class="formlabel">Scripture:</label>
+                                    <select name="scripture" id="scriptureList">
+                                        <option value="select" selected disabled>-Select a book of scripture-</option>
+                                        <option value="Old Testament">Old Testament</option>
+                                        <option value="New Testament">New Testament</option>
+                                        <option value="Book of Mormon">Book of Mormon</option>
+                                        <option value="Doctrine & Covenants">Doctrine & Covenants</option>
+                                        <option value="Pearl of Great Price">Pearl of Great Price</option>
+                                    </select></p>
+                            </div>
+                            <div>
+                                <p><label class="formlabel">Book:</label>
+                                    <input type="text" name="book"/></p>
+                            </div>
+                            <div>
+                                <p><label class="formlabel">Chapter:</label>
+                                    <input type="text" name="chapter"/></p>
+                            </div>
+                            <div>
+                                <p><label class="formlabel">Verse:</label>
+                                    <input type="text" name="verse" /></p>
+                            </div>
+                            <div>
+                                <p><label class="formlabel">Notes/Impressions:</label> <br />
+                                    <textarea class="formlabel" name="notes"> </textarea></p>
+                            </div>
+                            <div>
+                                <p><input type="submit" name="buttonSubmit" value="Add Entry"/></p>
+                            </div>
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
+        </main>
+        <footer>
+        </footer>
+        </div>
+    </body>
+</html>
